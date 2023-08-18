@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
-const aux = 3
-const delay = 5
+const aux = 1
+const delay = 3
 
 func main() {
 
@@ -110,15 +111,17 @@ func readFile() []string {
 		fmt.Println("ERRO na leitura do arquivo:", err)
 	}
 
-	if err != nil {
-		fmt.Println("ERRO na leitura do arquivo:", err)
-	}
-
 	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
 		line := scanner.Text()
+		line = strings.TrimSpace(line)
 		sites = append(sites, line)
+	}
+
+	erro := file.Close()
+	if erro != nil {
+		return nil
 	}
 
 	return sites
