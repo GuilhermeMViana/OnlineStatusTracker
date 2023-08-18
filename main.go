@@ -15,7 +15,6 @@ const delay = 3
 func main() {
 
 	showIntroduction()
-
 	for {
 		showMenu()
 
@@ -31,12 +30,19 @@ func main() {
 				fmt.Println("Voltando para o menu em", i, "segundos.")
 				time.Sleep(1 * time.Second)
 			}
+		case 3:
+			addSite()
 		case 0:
 			fmt.Println("Programa finalizado")
 			os.Exit(0)
 		default:
 			fmt.Println("Verifique seu comando")
-			os.Exit(-1)
+			for i := 3; i > 0; i-- {
+				fmt.Println("Voltando para o menu em", i, "segundos.")
+				time.Sleep(1 * time.Second)
+			}
+
+			showMenu()
 		}
 	}
 
@@ -59,6 +65,7 @@ func showMenu() {
 	fmt.Println("---------------------------")
 	fmt.Println("1 - Iniciar Monitoramento")
 	fmt.Println("2 - Exibir Logs")
+	fmt.Println("3 - Adicionar site")
 	fmt.Println("0 - Sair do programa")
 	fmt.Println("---------------------------")
 }
@@ -158,5 +165,43 @@ func readLog() {
 	}
 
 	fmt.Println(string(file))
+
+}
+
+func addSite() {
+	var command int
+	fmt.Println("Deseja adicionar um novo site?")
+	fmt.Println("1 - Adicionar um novo site")
+	fmt.Println("0 - Voltar para o menu")
+	_, err := fmt.Scan(&command)
+	if err != nil {
+		fmt.Println("Erro ao adicionar novo site:", err)
+	}
+	switch command {
+	case 1:
+		fmt.Println("Insira a url do site")
+		var link string
+		_, err := fmt.Scan(&link)
+
+		if err != nil {
+			fmt.Println("Problema com o link:", err)
+		}
+
+		file, _ := os.OpenFile("sites.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+
+		if file != nil {
+			_, err := file.WriteString(link + "\n")
+
+			if err != nil {
+				fmt.Println("Erro ao adicionar linha:", err)
+			}
+		}
+		showMenu()
+	case 0:
+		showMenu()
+	default:
+		showMenu()
+
+	}
 
 }
