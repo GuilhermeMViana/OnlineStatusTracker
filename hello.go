@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-const aux = 1
 const delay = 3
 
 func main() {
 
 	showIntroduction()
+
 	for {
 		showMenu()
 
@@ -25,7 +26,11 @@ func main() {
 			handleVerifySiteStatus()
 		case 2:
 			fmt.Println("Gerando Logs...")
-			readFile()
+			readLog()
+			for i := 3; i > 0; i-- {
+				fmt.Println("Voltando para o menu em", i, "segundos.")
+				time.Sleep(1 * time.Second)
+			}
 		case 0:
 			fmt.Println("Programa finalizado")
 			os.Exit(0)
@@ -52,7 +57,7 @@ func showIntroduction() {
 
 func showMenu() {
 	fmt.Println("---------------------------")
-	fmt.Println("1 - Iniciar Monitoranto")
+	fmt.Println("1 - Iniciar Monitoramento")
 	fmt.Println("2 - Exibir Logs")
 	fmt.Println("0 - Sair do programa")
 	fmt.Println("---------------------------")
@@ -75,14 +80,12 @@ func handleVerifySiteStatus() {
 	fmt.Println("Monitorando...")
 	sites := readFile()
 
-	for i := 0; i < aux; i++ {
-		//for i := 0 ; i < len(sites) ; i++
-		for i, site := range sites {
-			fmt.Println("Testando", i+1, "º site:", site)
-			testSite(site)
+	//for i := 0 ; i < len(sites) ; i++
+	for i, site := range sites {
+		fmt.Println("Testando", i+1, "º site:", site)
+		testSite(site)
 
-			time.Sleep(delay * time.Second)
-		}
+		time.Sleep(delay * time.Second)
 	}
 
 }
@@ -96,8 +99,10 @@ func testSite(site string) {
 
 	if resp.StatusCode == 200 {
 		fmt.Println("O Site", site, "foi carregado com sucesso!", resp.StatusCode)
+		logRegister(site, true)
 	} else {
 		fmt.Println("O Site", site, "encontrou o problema: ", resp.StatusCode)
+		logRegister(site, false)
 	}
 }
 
@@ -119,10 +124,39 @@ func readFile() []string {
 		sites = append(sites, line)
 	}
 
-	erro := file.Close()
-	if erro != nil {
+	closeErr := file.Close()
+	if closeErr != nil {
 		return nil
 	}
 
 	return sites
+}
+
+func logRegister(site string, status bool) {
+
+	file, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+
+	if err != nil {
+		fmt.Println("ERRO:", err)
+	}
+
+	file.WriteString(time.Now().Format("02/01/2006 15:04") + " - " + site + "- Online:" + strconv.FormatBool(status) + "\n")
+
+	closeErr := file.Close()
+
+	if closeErr != nil {
+		fmt.Println("ERRO:", closeErr)
+	}
+	fmt.Println("Log Gerado!")
+}
+
+func readLog() {
+	file, err := os.ReadFile("log.txt")
+
+	if err != nil {
+		fmt.Println("ERRO:", err)
+	}
+
+	fmt.Println(string(file))
+
 }
