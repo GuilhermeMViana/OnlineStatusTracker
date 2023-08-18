@@ -1,12 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 )
 
+const aux = 3
+const delay = 5
+
 func main() {
+
 	showIntroduction()
 	for {
 		showMenu()
@@ -18,6 +24,7 @@ func main() {
 			handleVerifySiteStatus()
 		case 2:
 			fmt.Println("Gerando Logs...")
+			readFile()
 		case 0:
 			fmt.Println("Programa finalizado")
 			os.Exit(0)
@@ -32,7 +39,11 @@ func main() {
 func showIntroduction() {
 	var name string
 	fmt.Println("Qual é o seu nome:")
-	fmt.Scanf("%s", &name)
+	_, err := fmt.Scan(&name)
+	if err != nil {
+		fmt.Println("ERRO:", err)
+	}
+
 	version := 1.1
 	fmt.Println("Olá, Sr(a).", name)
 	fmt.Println("Versão atual do programa: ", version)
@@ -50,7 +61,10 @@ func receiveCommand() int {
 	var command int
 
 	fmt.Println("Selecione uma opção: ")
-	fmt.Scan(&command)
+	_, err := fmt.Scan(&command)
+	if err != nil {
+		fmt.Println("ERRO:", err)
+	}
 
 	return command
 }
@@ -58,13 +72,54 @@ func receiveCommand() int {
 func handleVerifySiteStatus() {
 
 	fmt.Println("Monitorando...")
-	sites := []string{"https://www.alura.com.br", "https://go.dev"}
-	resp, _ := http.Get(sites[1])
-	fmt.Println(resp.StatusCode)
+	sites := readFile()
+
+	for i := 0; i < aux; i++ {
+		//for i := 0 ; i < len(sites) ; i++
+		for i, site := range sites {
+			fmt.Println("Testando", i+1, "º site:", site)
+			testSite(site)
+
+			time.Sleep(delay * time.Second)
+		}
+	}
+
+}
+
+func testSite(site string) {
+	resp, err := http.Get(site)
+
+	if err != nil {
+		fmt.Println("ERRO na conexão:", err)
+	}
 
 	if resp.StatusCode == 200 {
-		fmt.Println("O Site", sites[1], "foi carregado com sucesso!")
+		fmt.Println("O Site", site, "foi carregado com sucesso!", resp.StatusCode)
 	} else {
-		fmt.Println("O Site", sites[1], "encontrou o problema: ", resp.StatusCode)
+		fmt.Println("O Site", site, "encontrou o problema: ", resp.StatusCode)
 	}
+}
+
+func readFile() []string {
+
+	var sites []string
+
+	file, err := os.Open("sites.txt")
+
+	if err != nil {
+		fmt.Println("ERRO na leitura do arquivo:", err)
+	}
+
+	if err != nil {
+		fmt.Println("ERRO na leitura do arquivo:", err)
+	}
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		sites = append(sites, line)
+	}
+
+	return sites
 }
