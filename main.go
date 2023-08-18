@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -127,7 +126,6 @@ func readFile() []string {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		line = strings.TrimSpace(line)
 		sites = append(sites, line)
 	}
 
@@ -196,6 +194,8 @@ func addSite() {
 				fmt.Println("Erro ao adicionar linha:", err)
 			}
 		}
+
+		file.Close()
 		showMenu()
 	case 0:
 		showMenu()
